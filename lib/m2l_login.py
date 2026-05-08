@@ -4,6 +4,7 @@ import httpx
 
 from .config import get_config
 from .data_manager import DataManager
+from .m2l_bind import bind_user_token_data
 
 
 def _arcade_conf(arcade_key: str) -> Dict[str, Any]:
@@ -61,7 +62,10 @@ async def login_user(
         return f"⚠️ 用法: /l{arcade_key} <SGWCMAID>"
     user_token = DataManager.get_bindings().get(str(user_id))
     if not user_token:
-        return "❌ 请先发送 /bind <二维码内容> 绑定你的 Token"
+        ok, result = await bind_user_token_data(user_id, sgwcmaid)
+        if not ok:
+            return f"❌ 自动绑定失败: {result}"
+        user_token = result
     cfg = get_config()
     conf = _arcade_conf(arcade_key)
     client_id = _select_client_id(conf.get("client_id"), index)
