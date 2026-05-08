@@ -120,6 +120,13 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
 
 
 def _register_arcade_commands(arcade_key: str) -> None:
+    conf = cfg.get("arcades", {}).get(arcade_key, {})
+    client_ids = conf.get("client_id", [])
+    if isinstance(client_ids, list):
+        client_id_count = len([str(item).strip() for item in client_ids if str(item).strip()])
+    else:
+        client_id_count = 1 if str(client_ids).strip() else 0
+
     login_cmd = on_command(f"l{arcade_key}", priority=5, rule=is_auth(), block=True)
 
     @login_cmd.handle()
@@ -129,6 +136,25 @@ def _register_arcade_commands(arcade_key: str) -> None:
         maid = arg.extract_plain_text().strip()
         target_user_id = resolve_target_user_id(event)
         await login_cmd.finish(await login_user(target_user_id, key, maid))
+
+    if client_id_count > 1:
+        for idx in range(1, client_id_count + 1):
+            login_idx_cmd = on_command(
+                f"l{arcade_key}{idx}",
+                priority=5,
+                rule=is_auth(),
+                block=True,
+            )
+
+            @login_idx_cmd.handle()
+            async def _(event: MessageEvent, arg: Message = CommandArg(), key: str = arcade_key, index: int = idx):
+                if not _arcade_group_allowed(event, key):
+                    await login_idx_cmd.finish("⚠️ 该机厅仅限指定群聊使用")
+                maid = arg.extract_plain_text().strip()
+                target_user_id = resolve_target_user_id(event)
+                await login_idx_cmd.finish(
+                    await login_user(target_user_id, key, maid, index)
+                )
 
     screenshot_cmd = on_command(
         f"screenshot{arcade_key}",
