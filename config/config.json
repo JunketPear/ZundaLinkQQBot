@@ -1,5 +1,5 @@
 {
-  "api_base": "https://api.mai2.link/mai2link/api/v0",
+  "api_base": "https://xn--9er778cb3e.xn--igrr70arr3c.vip/zundalink/api/v0",
   "default_token": "默认查卡用token，随便找个账户token扔着就行，机台的也行",
   "data_dir": "data/maimai_pro",
   "bindings_file": "player_bindings.json",
@@ -12,7 +12,7 @@
     "机厅名字": {
       "name": "机厅名称",
       "client_id": [
-        "机台加密id"
+        "机台加密id1","机台加密id2(多个机台时使用,用逗号分隔)"
       ],
       "ctl_token": null,
       "public_key": "机台公钥",
