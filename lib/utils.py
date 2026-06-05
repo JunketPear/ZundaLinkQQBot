@@ -9,12 +9,16 @@ def mask_key(value: str) -> str:
 
 
 def _format_time(value: str, fmt: str = "%H:%M") -> str:
-    return (
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
-        .astimezone(timezone(timedelta(hours=8)))
-        .strftime(fmt)
-    )
-
+    if not value:
+        return ""
+    try:
+        return (
+            datetime.fromisoformat(value.replace("Z", "+00:00"))
+            .astimezone(timezone(timedelta(hours=8)))
+            .strftime(fmt)
+        )
+    except ValueError:
+        return ""
 
 def build_status_sections(conf: Dict[str, Any], data: Dict[str, Any]) -> Tuple[str, List[str], List[str]]:
     if not data:
