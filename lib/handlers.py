@@ -91,7 +91,7 @@ forward_cmd = on_command("forward", priority=5, rule=is_auth(), block=True)
 
 
 async def _extract_image_base64(event: MessageEvent) -> str:
-    """从消息事件中提取第一张图片并转为纯 base64 字符串（不含 data URI 前缀）"""
+    """从消息事件中提取第一张图片，压缩后转为 base64 字符串"""
     for seg in event.get_message():
         if seg.type == "image":
             url = seg.data.get("url", "")
@@ -100,8 +100,18 @@ async def _extract_image_base64(event: MessageEvent) -> str:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(url, timeout=30)
                 resp.raise_for_status()
+
                 import base64
-                return base64.b64encode(resp.content).decode("utf-8")
+                import io
+                from PIL import Image
+
+                img = Image.open(io.BytesIO(resp.content))
+                if img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                img.thumbnail((256, 256), Image.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, format="JPEG", quality=75)
+                return base64.b64encode(buf.getvalue()).decode("utf-8")
     return ""
 
 
