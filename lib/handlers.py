@@ -2,6 +2,7 @@ from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageEvent, MessageSegment
 from nonebot.params import CommandArg
 from nonebot.permission import SUPERUSER
+from nonebot.typing import T_State
 
 from .admin import resolve_target_user_id
 from .config import get_config
@@ -105,7 +106,7 @@ async def _extract_image_base64(event: MessageEvent) -> str:
 
 
 @forward_cmd.handle()
-async def _(event: MessageEvent, arg: Message = CommandArg()):
+async def _(event: MessageEvent, arg: Message = CommandArg(), state: T_State = None):
     parts = arg.extract_plain_text().strip().split()
     target_user_id = resolve_target_user_id(event)
 
@@ -118,15 +119,15 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             # 关闭规则走正常流程
             await forward_cmd.finish(await handle_forward_command(target_user_id, parts))
         # 开启规则：提示用户发送图片
-        forward_cmd.state["portrait_user_id"] = target_user_id
+        state["portrait_user_id"] = target_user_id
         await forward_cmd.pause("📷 请发送一张图片作为头像，建议大小为256x256的正方形，否则可能因为图像拉伸导致显示不理想")
 
     await forward_cmd.finish(await handle_forward_command(target_user_id, parts))
 
 
 @forward_cmd.handle()
-async def _(event: MessageEvent):
-    target_user_id = forward_cmd.state.pop("portrait_user_id", None)
+async def _(event: MessageEvent, state: T_State = None):
+    target_user_id = state.pop("portrait_user_id", None)
     if not target_user_id:
         await forward_cmd.finish("❌ 会话状态异常，请重新使用 /forward fixUserPortrait true 发起")
 
