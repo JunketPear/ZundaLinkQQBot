@@ -17,7 +17,8 @@ async def add_forward_rule(user_id: str, arcade_key: str) -> str:
     conf = _arcade_conf(arcade_key)
     target_val = conf["public_key"]
     res = await get_forward_rules(cfg["api_base"], user_token)
-    rules = res.get("forwardData", {}).get("rules", {})
+    forward_data = res.get("forwardData") or {}
+    rules = forward_data.get("rules", {}) if isinstance(forward_data, dict) else {}
     password_rule = rules.get("fixSpecialClientPassword", {})
     old_val = password_rule.get("value", "") if isinstance(password_rule, dict) else ""
     current_keys = [k.strip() for k in str(old_val).split(",") if k.strip()]

@@ -13,7 +13,8 @@ async def toggle_unlock(user_id: str, target_state: bool) -> str:
         return "❌ 未绑定！"
     cfg = get_config()
     res = await get_forward_rules(cfg["api_base"], user_token)
-    rules = res.get("forwardData", {}).get("rules", {})
+    forward_data = res.get("forwardData") or {}
+    rules = forward_data.get("rules", {}) if isinstance(forward_data, dict) else {}
     music_rule = rules.get("fixUnlockALLMusic", {})
     status_name = _status_name(target_state)
     if music_rule.get("enable") is target_state:

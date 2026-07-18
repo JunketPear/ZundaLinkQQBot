@@ -1,8 +1,13 @@
 from typing import Dict, Set, Tuple
 
+import httpx
+
 from .config import get_config
 from .data_manager import DataManager
 from .m2l_forward import get_forward_rules, set_forward_rule
+
+
+PORTRAIT_RULE = "fixUserPortrait"
 
 
 def _parse_bool(raw: str) -> Tuple[bool, bool]:
@@ -24,7 +29,8 @@ def _format_rule_state(rule_name: str, rule_data: Dict) -> str:
 async def _fetch_rules(user_token: str) -> Dict:
     cfg = get_config()
     res = await get_forward_rules(cfg["api_base"], user_token)
-    return res.get("forwardData", {}).get("rules", {})
+    forward_data = res.get("forwardData") or {}
+    return forward_data.get("rules", {}) if isinstance(forward_data, dict) else {}
 
 
 def _blacklist() -> Set[str]:
@@ -100,3 +106,21 @@ async def handle_forward_command(user_id: str, args: list[str]) -> str:
     enable_raw = args[1]
     value = " ".join(args[2:]) if len(args) > 2 else ""
     return await update_forward_rule(user_id, rule, enable_raw, value)
+
+
+async def upload_portrait(user_id: str, image_base64: str) -> str:
+    """将图片 base64 作为 fixUserPortrait 规则的值上传到服务器"""
+    user_token = DataManager.get_bindings().get(str(user_id))
+    if not user_token:
+        return "❌ 未绑定！"
+    cfg = get_config()
+    add_res = await set_forward_rule(
+        cfg["api_base"],
+        user_token,
+        PORTRAIT_RULE,
+        True,
+        image_base64,
+    )
+    if add_res.get("success"):
+        return "✅ 头像已上传完毕！"
+    return f"❌ 上传失败: {add_res.get('msg')}"
