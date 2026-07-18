@@ -120,6 +120,7 @@ async def upload_portrait(user_id: str, image_base64: str) -> str:
         PORTRAIT_RULE,
         True,
         image_base64,
+        timeout=60,
     )
     if add_res.get("success"):
         return "✅ 头像已上传完毕！"

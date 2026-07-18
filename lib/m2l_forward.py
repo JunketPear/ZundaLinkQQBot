@@ -19,6 +19,7 @@ async def set_forward_rule(
     rule: str,
     enable: bool,
     value: str,
+    timeout: float = 10,
 ) -> Dict[str, Any]:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
@@ -29,6 +30,6 @@ async def set_forward_rule(
                 "enable": enable,
                 "value": value,
             },
-            timeout=10,
+            timeout=timeout,
         )
         return resp.json()
